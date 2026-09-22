@@ -458,7 +458,7 @@ let boardRotated=false;
 function boardSquares(){const scopeSide=analysisScope==="w"||analysisScope==="b"?analysisScope:userSide(activeGame);const black=scopeSide==="b";const flip=black!==boardRotated;const files=flip?["h","g","f","e","d","c","b","a"]:["a","b","c","d","e","f","g","h"];const ranks=flip?[1,2,3,4,5,6,7,8]:[8,7,6,5,4,3,2,1];return {files,ranks}}
 function pieceSVG(p){
   const key=`${p[0]}${({p:'P',n:'N',b:'B',r:'R',q:'Q',k:'K'})[p[1]]||String(p[1]||'').toUpperCase()}`;
-  const src=PIECE_DATA[key]||new URL(`./pieces/${key}.png`,import.meta.url).href;
+  const src=PIECE_DATA[key]||new URL(`./${key}.png`,import.meta.url).href;
   return `<img class="pieceSvg ${p[0]==="w"?"whitePiece":"blackPiece"} data-piece="${key}" src="${src}" alt="" draggable="false" aria-hidden="true">`;
 }
 const PIECE_FALLBACK={wK:"♔",wQ:"♕",wR:"♖",wB:"♗",wN:"♘",wP:"♙",bK:"♚",bQ:"♛",bR:"♜",bB:"♝",bN:"♞",bP:"♟"};
@@ -506,8 +506,10 @@ function ensureEngine(){
   engineReadyPromise=new Promise((resolve,reject)=>{
     const workerCandidates=[
       {
-        js:new URL("./stockfish/stockfish-18-lite-single.js",import.meta.url).href,
-        wasm:new URL("./stockfish/stockfish-18-lite-single.wasm",import.meta.url).href,
+        // GitHub Pages mobile uploads place the files at repository root.
+        // Keep the URLs same-origin so iOS Worker + WASM loading is reliable.
+        js:new URL("./stockfish-18-lite-single.js",import.meta.url).href,
+        wasm:new URL("./stockfish-18-lite-single.wasm",import.meta.url).href,
         label:"local Stockfish 18",
         local:true
       },

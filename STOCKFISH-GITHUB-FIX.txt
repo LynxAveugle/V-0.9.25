@@ -1,0 +1,5 @@
+HighTaxi Chess v0.9.26
+Stockfish files must be at repository root:
+  stockfish-18-lite-single.js
+  stockfish-18-lite-single.wasm
+The app and service worker now use these root paths.

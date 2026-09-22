@@ -2,8 +2,8 @@
 <script>
 (async()=>{
  const out=document.querySelector('#out'); const lines=[]; let bestmove=false;
- const wasm=new URL('./stockfish/stockfish-18-lite-single.wasm',location.href).href;
- const js=new URL('./stockfish/stockfish-18-lite-single.js',location.href).href;
+ const wasm=new URL('./stockfish-18-lite-single.wasm',location.href).href;
+ const js=new URL('./stockfish-18-lite-single.js',location.href).href;
  const workerUrl=new URL('./stockfish-worker.js',location.href);
  workerUrl.search='?engine='+encodeURIComponent(js)+'&label=browser-local';
  workerUrl.hash=encodeURIComponent(wasm)+',worker';
