@@ -1,5 +1,7 @@
-HighTaxi Chess v0.9.26
-Stockfish files must be at repository root:
+HighTaxi Chess v0.9.27
+Stockfish is loaded directly as a Web Worker from the root file:
   stockfish-18-lite-single.js
+The WASM file is passed in the Worker URL hash:
   stockfish-18-lite-single.wasm
-The app and service worker now use these root paths.
+This removes the intermediate importScripts bootstrap that could leave
+the engine silent on iOS Safari / GitHub Pages.

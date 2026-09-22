@@ -4,8 +4,7 @@
  const out=document.querySelector('#out'); const lines=[]; let bestmove=false;
  const wasm=new URL('./stockfish-18-lite-single.wasm',location.href).href;
  const js=new URL('./stockfish-18-lite-single.js',location.href).href;
- const workerUrl=new URL('./stockfish-worker.js',location.href);
- workerUrl.search='?engine='+encodeURIComponent(js)+'&label=browser-local';
+ const workerUrl=new URL('./stockfish-18-lite-single.js',location.href);
  workerUrl.hash=encodeURIComponent(wasm)+',worker';
  const worker=new Worker(workerUrl);
  const fail=(s)=>{out.textContent='ERROR\n'+s+'\n'+lines.join('\n'); try{worker.terminate()}catch{}};

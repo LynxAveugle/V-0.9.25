@@ -35,13 +35,13 @@ La disponibilité exacte des requêtes navigateur dépend des politiques CORS ac
 
 Le Worker tente dans cet ordre :
 
-1. fichiers locaux `stockfish-18-lite-single.{js,wasm}` s’ils sont ajoutés au dépôt ;
+1. fichiers locaux `stockfish/stockfish-18-lite-single.{js,wasm}` s’ils sont ajoutés au dépôt ;
 2. copie GitHub publique de Stockfish.js 18 ;
 3. CDN jsDelivr en second secours.
 
 Le build utilisé est **lite single-thread**, adapté aux navigateurs mobiles et ne nécessitant pas `SharedArrayBuffer`. Le projet de référence utilisé pour le fallback publie bien les fichiers `stockfish-18-lite-single.js` et `.wasm`.
 
-La version livrée fonctionne donc en ligne sans binaire local. Pour une analyse totalement hors ligne, les deux binaires doivent être ajoutés à la racine du dépôt.
+La version livrée fonctionne donc en ligne sans binaire local. Pour une analyse totalement hors ligne, les deux binaires doivent être ajoutés dans `stockfish/`.
 
 ## Correctifs v0.9.18
 
@@ -77,7 +77,7 @@ sw.js
 stockfish-worker.js
 manifest.webmanifest
 .nojekyll
-les PNG des pièces sont également placés à la racine du dépôt.
+
 ```
 
 ## Tests locaux
@@ -118,7 +118,7 @@ Le fichier `test-import-regression.mjs` utilise également le PGN Chess.com four
 - Le test navigateur utilise exactement le même chemin que l’application.
 
 ## v0.9.20 — Stockfish 18 local
-- Stockfish 18 lite single-threaded est désormais embarqué à la racine du dépôt pour être compatible avec l’upload GitHub mobile.
+- Stockfish 18 lite single-threaded est désormais embarqué dans `stockfish/`.
 - Le Worker transmet explicitement l'URL WASM via son fragment `#<wasm>,worker`, compatible avec le bootstrap Stockfish.js fourni.
 - Le chargement local est prioritaire et les fichiers sont précachés par le Service Worker.
 - Le fallback distant utilise Stockfish.js 18.0.8.
@@ -128,14 +128,3 @@ Le fichier `test-import-regression.mjs` utilise également le PGN Chess.com four
 - Cache des PGN recréés indexé par `updatedAt`, sans utiliser la longueur de `JSON.stringify(analysisTree)`.
 - Liste des parties rendue par lots visibles (100 à la fois) avec bouton d'affichage progressif.
 - Page de test navigateur `test-stockfish-browser.html` pour vérifier réellement `uci → isready → position → go → bestmove` avec un Worker Stockfish 18 et le WASM local.
-
-
-## v0.9.26 — correction GitHub Pages / Stockfish
-
-Le dépôt GitHub utilisé par HighTaxi est actuellement aplati lors de l’upload mobile :
-`stockfish-18-lite-single.js` et `stockfish-18-lite-single.wasm` sont donc à la racine.
-
-L’application charge désormais ces deux fichiers avec des URLs same-origin relatives à `app.js`.
-Le Service Worker les précache également à la racine. Cela évite l’erreur
-`HighTaxi engine load error [local Stockfish 18] Load failed` lorsque GitHub Pages
-ne conserve pas les sous-dossiers.

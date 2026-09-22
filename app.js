@@ -506,8 +506,6 @@ function ensureEngine(){
   engineReadyPromise=new Promise((resolve,reject)=>{
     const workerCandidates=[
       {
-        // GitHub Pages mobile uploads place the files at repository root.
-        // Keep the URLs same-origin so iOS Worker + WASM loading is reliable.
         js:new URL("./stockfish-18-lite-single.js",import.meta.url).href,
         wasm:new URL("./stockfish-18-lite-single.wasm",import.meta.url).href,
         label:"local Stockfish 18",
@@ -531,8 +529,11 @@ function ensureEngine(){
       // runtime inside the worker and keeps the WASM URL in the worker hash.
       // This is more reliable on GitHub Pages/iOS than constructing the
       // Stockfish worker directly from a script URL with a fragment.
-      const base=new URL("./stockfish-worker.js",import.meta.url);
-      base.search=`?engine=${encodeURIComponent(c.js)}&label=${encodeURIComponent(c.label)}`;
+      // Stockfish.js already contains its own Worker bootstrap. Running the
+      // engine script directly avoids an importScripts() hop, which is fragile
+      // on iOS Safari/GitHub Pages. The WASM URL is passed through the Worker
+      // hash, exactly as expected by Stockfish.js.
+      const base=new URL(c.local?"./stockfish-18-lite-single.js":c.js,import.meta.url);
       base.hash=`${encodeURIComponent(c.wasm)},worker`;
       return new Worker(base);
     };
