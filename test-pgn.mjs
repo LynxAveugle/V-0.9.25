@@ -1,0 +1,15 @@
+import {parsePGN,exportPGN} from "./pgn.js";
+const text=`[Event "Test"]\n[SetUp "1"]\n[FEN "8/P7/8/8/8/8/8/k6K w - - 0 1"]\n[White "HighTaxi"]\n[Black "Opponent"]\n[Result "1-0"]\n\n1. a8=Q! {promotion} 1-0`;
+const games=parsePGN(text); if(games.length!==1)throw Error("single parse");
+const g=games[0]; if(g.startFen.indexOf("8/P7")!==0||g.root.fen!==g.startFen)throw Error("FEN root");
+if(g.root.children[0].san!=="a8=Q+")throw Error("promotion SAN");
+const out=exportPGN(g); if(!out.includes("[FEN \"8/P7/8/8/8/8/8/k6K w - - 0 1\"]"))throw Error("FEN export");
+const c=parsePGN(`[Event "A"]\n\n1. e4 {ouverture} e5 2. Nf3 (2. Bc4 Nf6) 2... Nc6 3. Bb5! a6 1-0`)[0];
+if(!c.root.children[0].children[0].children.some(n=>n.san==="Bc4"))throw Error("variation");
+const round=parsePGN(exportPGN(c))[0]; if(!round.root.children[0].children[0].children.some(n=>n.san==="Bc4"))throw Error("variation export roundtrip"); if(!round.root.children[0].comment.includes("ouverture"))throw Error("comment roundtrip");
+const castle=parsePGN(`1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. O-O Nf6 5. Re1 Be7 6. Bxc6 O-O 7. d3 d6 1/2-1/2`)[0];
+if(castle.root.children.length!==1)throw Error("castle parse");
+const semicolon=parsePGN(`1. e4 ; commentaire de ligne\ne5 2. Nf3 2... Nc6 1-0`)[0]; if(semicolon.root.children[0].san!=="e4")throw Error("semicolon comment");
+const noEvent=parsePGN(`1. e4 e5 1-0\n1. d4 d5 0-1`); if(noEvent.length!==2)throw Error("no-event split");
+const tolerant=parsePGN(`1. e4 e5 1-0\n1. THIS_IS_BAD 0-1\n1. d4 d5 1/2-1/2`); if(tolerant.length!==2||tolerant.errors.length!==1)throw Error("invalid tolerance");
+console.log("PGN v0.9.6 TESTS OK");

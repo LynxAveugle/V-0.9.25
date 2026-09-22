@@ -1,0 +1,19 @@
+<!doctype html><meta charset="utf-8"><title>HighTaxi Stockfish browser integration</title><pre id="out">BOOT</pre>
+<script>
+(async()=>{
+ const out=document.querySelector('#out'); const lines=[]; let bestmove=false;
+ const wasm=new URL('./stockfish/stockfish-18-lite-single.wasm',location.href).href;
+ const js=new URL('./stockfish/stockfish-18-lite-single.js',location.href).href;
+ const workerUrl=new URL('./stockfish-worker.js',location.href);
+ workerUrl.search='?engine='+encodeURIComponent(js)+'&label=browser-local';
+ workerUrl.hash=encodeURIComponent(wasm)+',worker';
+ const worker=new Worker(workerUrl);
+ const fail=(s)=>{out.textContent='ERROR\n'+s+'\n'+lines.join('\n'); try{worker.terminate()}catch{}};
+ worker.onmessage=e=>{const line=typeof e.data==='string'?e.data:(e.data?.line||JSON.stringify(e.data)); lines.push(line); out.textContent=lines.join('\n'); if(/^bestmove\s+\S+/.test(line)){bestmove=true;out.textContent='PASS\n'+lines.join('\n');worker.terminate();}};
+ worker.onerror=e=>fail(e.message||'Worker error');
+ worker.postMessage('uci');
+ setTimeout(()=>worker.postMessage('isready'),1000);
+ setTimeout(()=>{worker.postMessage('position startpos');worker.postMessage('go depth 2')},1500);
+ setTimeout(()=>{if(!bestmove)fail('TIMEOUT')},15000);
+})().catch(e=>document.body.textContent='ERROR\n'+e.stack);
+</script>

@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const app=fs.readFileSync('./app.js','utf8'), index=fs.readFileSync('./index.html','utf8'), css=fs.readFileSync('./styles.css','utf8'), sw=fs.readFileSync('./sw.js','utf8'), version=fs.readFileSync('./version.js','utf8');
+assert.match(version,/APP_VERSION="0\.9\.25"/);
+for(const icon of ["!!","!","★","👍","✓","📖","?!","?","❌","??"]) assert.match(app,new RegExp(`icon:"${icon.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&')}"`));
+assert.match(index,/id="globalTree"/); assert.match(index,/id="analysisScopeBar"/); assert.match(index,/data-side="w"/); assert.match(index,/data-side="b"/); assert.match(index,/id="analysisMoves"/); assert.match(index,/id="analysisEval"/);
+assert.match(app,/globalTreeSideFilter/); assert.match(app,/function setAnalysisScope/); assert.match(app,/const scopeSide=analysisScope/); assert.match(app,/analysisScopeTab/); assert.match(app,/playedByUser/); assert.match(app,/line.setAttribute\("stroke","currentColor"\)/);
+assert.match(css,/\.squareAnnotation\[data-annotation="!!"\]/); assert.match(css,/\.anno\[data-annotation="!!"\]/); assert.match(css,/\.moveArrows/); assert.match(css,/\.analysisScopeTab/);
+assert.match(sw,/v0\.9\.25/);
+console.log('V0.9.25 ANALYSIS/SCOPE/ARROWS/ANNOTATION TESTS OK');

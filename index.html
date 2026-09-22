@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#211f1d"><meta name="description" content="HighTaxi Chess — parties, analyse et annotations personnelles">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css"><title>HighTaxi Chess</title>
+</head>
+<body>
+<div class="app">
+<header><img class="logo" width="42" height="42" src="logo.jpg" alt="HighTaxi Chess"><div class="brand">HighTaxi Chess</div><div class="spacer"></div><button class="iconbtn" id="settingsBtn" aria-label="Réglages">⚙︎</button></header>
+<main>
+<section id="home" class="screen active"><div class="title">Accueil</div><div class="card"><div class="muted">Parties importées</div><div id="homeGames" style="font-size:32px;font-weight:800;margin-top:5px">0</div></div><div class="card"><b>Dernière partie</b><div id="homeLast" class="muted" style="margin-top:8px">Aucune partie</div></div><div class="card"><b>À revoir</b><div id="homeReview" class="muted" style="margin-top:8px">Aucune position annotée</div></div></section>
+<section id="games" class="screen"><div class="title">Parties</div><div class="gameFilters"><input id="gameSearch" class="input" placeholder="Rechercher adversaire, ouverture, date…" autocomplete="off"><select id="gameResultFilter" class="input"><option value="all">Tous les résultats</option><option value="win">Victoires</option><option value="draw">Nulles</option><option value="loss">Défaites</option><option value="unknown">Inconnus / en cours</option></select><select id="gameColorFilter" class="input"><option value="all">Toutes les couleurs</option><option value="w">Blancs</option><option value="b">Noirs</option></select><select id="gameSourceFilter" class="input"><option value="all">Toutes les sources</option><option value="chess.com">Chess.com</option><option value="pgn">PGN</option><option value="club">Club</option></select></div><div class="controls"><button class="btn" id="importBtn">Importer PGN</button><button class="btn secondary" id="syncBtn">Synchroniser Chess.com</button></div><div id="syncStatus" class="muted" aria-live="polite">Aucune synchronisation effectuée</div><div id="syncProgressWrap" class="syncProgress" style="display:none" aria-live="polite"><progress id="syncProgress" value="0" max="1"></progress><div id="syncProgressText" class="muted">Synchronisation…</div></div><div class="controls"><button class="btn secondary" id="backupBtn">Sauvegarder la base</button><button class="btn secondary" id="restoreBtn">Restaurer</button></div><input id="backupFile" type="file" accept="application/json,.json" hidden><input id="pgnFile" type="file" accept=".pgn,text/plain" hidden>
+<div class="card form">
+<b>Ajouter une partie de club</b>
+<input class="input" id="manualWhite" placeholder="Blancs">
+<input class="input" id="manualBlack" placeholder="Noirs">
+<select class="input" id="manualResult"><option value="1-0">1–0</option><option value="0-1">0–1</option><option value="1/2-1/2">½–½</option><option value="*">En cours</option></select>
+<button class="btn secondary" id="clubStart">Ouvrir l’échiquier de saisie</button>
+<div id="clubComposer" class="clubComposer" style="display:none">
+  <div id="clubBoard" class="clubBoard" aria-label="Échiquier de saisie de partie de club"></div>
+  <div class="clubMeta"><span id="clubStatus" class="muted">Position initiale · Blancs au trait</span><button class="btn secondary" id="clubUndo">Annuler le dernier coup</button></div>
+  <div id="clubMoves" class="moves clubMoves"></div>
+  <div class="clubPreview" id="clubPgnPreview"></div>
+  <div class="controls"><button class="btn" id="manualAdd">Ajouter la partie</button><button class="btn secondary" id="clubCancel">Annuler</button></div>
+</div>
+</div>
+<div id="gameList" class="list"></div>
+<section class="card pgnCollections" id="pgnCollections">
+<div class="pgnTabs" role="tablist"><button class="pgnTab active" type="button" data-pgn-color="w">HighTaxi blanc</button><button class="pgnTab" type="button" data-pgn-color="b">HighTaxi noir</button></div>
+<div class="pgnPanel"><div class="pgnPanelHead"><b id="pgnPanelTitle">HighTaxi avec les Blancs</b><button class="btn secondary" id="copyOriginalPgn" type="button">Copier PGN Chess.com</button></div>
+<textarea id="originalPgnCollection" class="pgnOutput" readonly spellcheck="false"></textarea>
+<div class="pgnPanelHead"><b>PGN recréé avec les annotations HighTaxi</b><button class="btn secondary" id="copyRecreatedPgn" type="button">Copier PGN recréé</button></div>
+<textarea id="recreatedPgnCollection" class="pgnOutput" readonly spellcheck="false"></textarea></div></section>
+</section>
+<section id="boardScreen" class="screen">
+  <div class="analysisHeader">
+    <button class="analysisBack" id="analysisBackBtn" aria-label="Retour">‹</button>
+    <div class="analysisHeading"><div class="analysisTitle">Analyse</div><div class="analysisMode">♛ <span>Standard</span></div></div>
+    <div class="analysisActions">
+      <button class="analysisIcon" id="analysisSearchBtn" aria-label="Rechercher">⌕</button>
+      <button class="analysisIcon" id="analysisEngineBtn" aria-label="Stockfish">♙</button>
+      <button class="analysisIcon" id="analysisBookBtn" aria-label="Arbre des positions">▤</button>
+      <button class="analysisIcon" id="analysisSettingsBtn" aria-label="Réglages">⚙︎</button><button class="analysisIcon" id="analysisExportBtn" aria-label="Exporter le PGN">⇩</button>
+    </div>
+  </div>
+  <div class="analysisLayout">
+    <div class="analysisBoardColumn">
+      <div id="boardPlayers" class="boardPlayers">Position initiale · HighTaxi Chess</div><div id="analysisScopeBar" class="analysisScopeBar" role="tablist" aria-label="Parties à afficher dans l’analyse">
+<button class="analysisScopeTopTab" type="button" data-side="all">Toutes</button>
+<button class="analysisScopeTopTab" type="button" data-side="w">HighTaxi Blancs</button>
+<button class="analysisScopeTopTab" type="button" data-side="b">HighTaxi Noirs</button>
+<span id="analysisScopeHint" class="analysisScopeHint">Toutes les parties</span>
+</div>
+      <div class="boardWrap"><div id="board" class="board" aria-label="Échiquier"></div></div>
+      <div id="position" class="position">Position de départ · Blancs</div>
+      <div class="analysisControls">
+        <button class="analysisControl" id="analysisTreeBtn" aria-label="Afficher l’arbre">☷</button>
+        <button class="analysisControl" id="analysisControlSettings" aria-label="Options d’analyse">⚙︎</button>
+        <button class="analysisControl" id="rotateBoardBtn" aria-label="Tourner l’échiquier">↻</button>
+        <button class="analysisControl" id="prevBtn" aria-label="Coup précédent">‹</button>
+        <button class="analysisControl" id="nextBtn" aria-label="Coup suivant">›</button>
+      </div>
+      <div id="moves" class="moves legacyMoves" aria-hidden="true"></div>
+    </div>
+    <aside class="analysisSide">
+      <section class="analysisCard movesCard">
+        <div class="analysisCardTitle">Coups joués</div>
+        <div id="analysisMoves" class="analysisMoves"></div>
+      </section>
+      <section class="analysisCard evalCard" id="analysisEval">
+        <div class="analysisCardTitle">Évaluation <span>(Stockfish)</span></div>
+        <div class="evalProgress"><div id="evalProgressFill"></div></div>
+        <div class="evalValueLarge" id="evalValue">0.00</div>
+        <div class="evalDepth" id="evalDepth">Profondeur —</div>
+        <button class="engineRetry analysisRetry" id="engineRetry" hidden>Réessayer</button><details class="engineDiagnostics"><summary>Voir les détails</summary><div id="engineDiagnosticsText" class="muted">Aucun diagnostic.</div></details>
+        <div class="evalRailLegacy" aria-hidden="true"><div class="evalEngine">STOCKFISH</div><div class="evalBar" id="evalBar"><div class="evalBlack"></div><div class="evalFill" id="evalFill"></div><div class="evalWhite"></div><span class="evalCenter"></span></div></div>
+      </section>
+      <section class="analysisCard bestCard" id="analysisBest">
+        <div class="analysisCardTitle">Meilleurs coups</div>
+        <div id="bestMovesList" class="bestMovesList"><div class="bestMoveRow"><span>1.</span><b id="bestMovePrimary">—</b><span id="bestMoveEval">—</span></div></div>
+      </section>
+      <section class="analysisCard insightsCard" id="analysisInsights"><div class="analysisCardTitle">Coup sélectionné</div><div id="moveInsights"><div class="muted">Sélectionne un coup pour voir ses statistiques.</div></div></section>
+    </aside>
+  </div>
+  <section id="annotationPanel" class="analysisAnnotationCard">
+    <div class="annotationCopy"><div class="annotationIcon">♟</div><div><b id="annotationHeadline">Aucune annotation</b><div id="annotationSummary" class="muted">Ajoute une annotation ou une note à cette position.</div></div></div>
+    <div class="annotationAction"><button class="annotationAdd" id="saveNote">＋ Ajouter une annotation</button></div>
+    <div class="annotationEditor"><div class="annotation-row" id="annotationRow"></div><textarea id="note" class="note" placeholder="Note personnelle…"></textarea></div>
+  </section>
+  <section class="globalTreePanel analysisTreePanel"><div class="analysis-head"><b>Arbre global des positions</b><span class="muted" id="globalTreeHint">Toutes les parties</span></div><div id="globalTree" class="globalTree"><div class="muted">L’arbre sera construit à partir de ta base.</div></div></section>
+</section>
+<section id="stats" class="screen"><div class="title">Statistiques</div><div class="stats"><div class="stat">Parties<b id="sGames">0</b></div><div class="stat">Victoires<b id="sWins">0</b></div><div class="stat">Nulles<b id="sDraws">0</b></div><div class="stat">Défaites<b id="sLoss">0</b></div></div><div class="card"><b>Répartition</b><div id="sColors" class="muted" style="margin-top:8px">Blancs — · Noirs —</div></div><div class="card"><b>Ouvertures les plus présentes</b><div id="sOpenings" class="statsList" style="margin-top:8px"><span class="muted">Aucune donnée</span></div></div></section>
+<section id="training" class="screen"><div class="title">Entraînement</div><div class="card"><b>Positions à revoir</b><p id="trainingText" class="muted">Tes positions annotées apparaîtront ici.</p></div><div id="trainingList" class="trainingList"></div></section>
+</main>
+<nav class="tabs" role="tablist">
+<button class="tab active" data-screen="home"><span>⌂</span>Accueil</button>
+<button class="tab" data-screen="games"><span>☷</span>Parties</button>
+<button class="tab" data-screen="boardScreen"><span>♟</span>Analyse</button>
+<button class="tab" data-screen="stats"><span>◔</span>Statistiques</button>
+<button class="tab" data-screen="training"><span>★</span>Entraînement</button>
+</nav>
+<div id="settingsPanel" class="settingsOverlay" aria-hidden="true"><section class="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="settingsHead"><b id="settingsTitle">Réglages HighTaxi Chess</b><button id="settingsClose" class="iconbtn" aria-label="Fermer">×</button></div><div class="settingsGrid"><div><label class="muted" for="settingsAccount">Compte Chess.com</label><input id="settingsAccount" class="input" value="HighTaxi" autocomplete="off" spellcheck="false"></div><div><span class="muted">Version</span><b id="settingsVersion">0.9.24</b></div><div><span class="muted">Stockage</span><b id="settingsStorage">—</b></div></div><div class="settingsOptions"><label><input type="checkbox" id="setting_autoEngine"> Analyse Stockfish automatique</label><label><input type="checkbox" id="setting_showArrows"> Afficher les flèches de l’arbre global</label><label><input type="checkbox" id="setting_compactMoves"> Mode compact pour les coups</label></div><div class="settingsButtons"><button class="btn secondary" id="settingsRebuild">Reconstruire l’arbre global</button><button class="btn secondary" id="settingsEngineReset">Réinitialiser Stockfish</button><button class="btn secondary" id="settingsClearCaches">Vider les caches locaux</button></div><div class="annotationLegend"><b>Annotations de qualité</b><div class="legendGrid"><span>!! Excellent / décisif</span><span>! Bon coup</span><span>★ Coup brillant</span><span>👍 Bon coup</span><span>✓ Coup correct</span><span>📖 Coup théorique</span><span>?! Coup douteux</span><span>? Erreur</span><span>❌ Mauvais coup</span><span>?? Grosse erreur</span></div></div></section></div><div id="toast" class="toast" role="status"></div>
+</div>
+<script type="module" src="app.js"></script>
+</body></html>

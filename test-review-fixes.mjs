@@ -1,0 +1,28 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const app=fs.readFileSync('./app.js','utf8');
+const sw=fs.readFileSync('./sw.js','utf8');
+const worker=fs.readFileSync('./stockfish-worker.js','utf8');
+const db=fs.readFileSync('./db.js','utf8');
+const pgn=fs.readFileSync('./pgn.js','utf8');
+const index=fs.readFileSync('./index.html','utf8');
+
+assert.match(sw,/CACHE=.*v0\.9\.25/,'Service Worker doit être versionné pour invalider l’ancien cache');
+assert.match(sw,/Network-first|fresh=await refresh/,'Le shell doit être rafraîchi après un déploiement');
+assert.doesNotMatch(sw,/\/api\//,'Le Service Worker ne doit plus prévoir une route proxy Cloudflare');
+assert.match(app,/return c\.san\(move\)/,'UCI vers SAN doit utiliser Chess.san sans muter la position');
+assert.match(app,/persistAnalysisSnapshot\(snapshot\)|const snapshot=/,'Autosave doit capturer un snapshot');
+assert.match(app,/saveNoteBeforeNavigation\(\);\n?      let move=candidates\[0\]/,'Navigation par coup doit sauvegarder la note avant de jouer');
+assert.match(app,/parsePGN\(source\)|parsePGN\(raw\)/,'Les PGN importés doivent être validés par le parseur');
+assert.match(app,/chessComPgnIsStandard/,'Les variantes Chess.com non standard doivent être ignorées');
+assert.match(app,/\$\("exportBtn"\)\?\.addEventListener/,'Le bouton export absent ne doit pas bloquer le démarrage');
+assert.match(app,/github\.com\/nmrugg\/stockfish\.js\/releases\/download\/v18\.0\.8\/stockfish-18-lite-single\.js/,'Stockfish doit avoir un fallback GitHub Stockfish 18');
+assert.match(app,/cdn\.jsdelivr\.net\/npm\/stockfish@18.0.8\/bin\/stockfish-18-lite-single\.js/,'Stockfish doit avoir un fallback CDN Stockfish 18');
+assert.match(app,/new URL\("\.\/stockfish-worker\.js",import\.meta\.url\)/,'Le Worker doit être résolu relativement au module');
+assert.match(app,/new URL\(`\.\/pieces\/\$\{key\}\.png`,import\.meta\.url\)/,'Les pièces doivent être résolues relativement au module');
+assert.match(app,/installPieceFallbacks\(board\)/,'Une pièce de secours doit éviter les icônes cassées');
+assert.match(app,/from\|.*to|move\.from.*move\.to/,'Les arêtes globales doivent utiliser les coordonnées');
+assert.match(app,/d>0.*↳|variation/i,'Les variantes doivent être visibles dans la liste des coups');
+assert.match(db,/localStorage\.setItem\("ht_games_migration_backup"/,'La sauvegarde de migration legacy reste protégée');
+assert.match(index,/id="syncBtn"[^>]*>Synchroniser Chess\.com/,'Le bouton de synchronisation doit rester présent');
+console.log('REVIEW FIX TESTS OK');
